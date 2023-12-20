@@ -91,9 +91,8 @@ namespace CopyrightEditor
 
             if (bFindExisitingCopyrightNotice)
             {
-                // Find the first single-line comment (//) or multi-line comment (/* ... */) at the beginning of the file
                 string pattern = @"^(//.*?$|/\*.*?\*/)";
-                Match firstCommentMatch = Regex.Match(fileContent, pattern, RegexOptions.Multiline);
+                Match firstCommentMatch = Regex.Match(fileContent, pattern, RegexOptions.Multiline | RegexOptions.Singleline);
 
                 if (firstCommentMatch.Success)
                 {
@@ -108,7 +107,7 @@ namespace CopyrightEditor
                     else
                     {
                         updatedContent = NewCopyrightNotice + updatedContent;
-                    }              
+                    }
 
                     // Write the updated content back to the file
                     File.WriteAllText(filePath, updatedContent);
@@ -116,7 +115,7 @@ namespace CopyrightEditor
                 }
                 else if (bAddCopyrightNoticeIfNotFound)
                 {
-                    // Add new copyright notice
+                    // Add new copyright notice if no existing notice is found
                     string updatedContent;
 
                     if (bAddEmptyLineAfterCopyrightNotice)
@@ -135,23 +134,13 @@ namespace CopyrightEditor
             }
             else
             {
-                string pattern = $"^{ExistingCopyrightNotice}";
+                string pattern = Regex.Escape(ExistingCopyrightNotice);
                 Match commentMatch = Regex.Match(fileContent, pattern, RegexOptions.Multiline);
 
                 if (commentMatch.Success)
                 {
-                    // Remove the matched comment
-                    string updatedContent = fileContent.Remove(commentMatch.Index, commentMatch.Length);
-
-                    // Add new copyright notice
-                    if (bAddEmptyLineAfterCopyrightNotice)
-                    {
-                        updatedContent = NewCopyrightNotice + Environment.NewLine + updatedContent;
-                    }
-                    else
-                    {
-                        updatedContent = NewCopyrightNotice + updatedContent;
-                    }
+                    // Replace the existing copyright notice with the new one
+                    string updatedContent = fileContent.Replace(commentMatch.Value, NewCopyrightNotice);
 
                     // Write the updated content back to the file
                     File.WriteAllText(filePath, updatedContent);
@@ -159,7 +148,7 @@ namespace CopyrightEditor
                 }
                 else if (bAddCopyrightNoticeIfNotFound)
                 {
-                    // Add new copyright notice
+                    // Add new copyright notice if no existing notice is found
                     string updatedContent;
 
                     if (bAddEmptyLineAfterCopyrightNotice)
